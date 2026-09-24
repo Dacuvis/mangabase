@@ -10,7 +10,17 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_24_051405) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_24_091252) do
+  create_table "best_mangas", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "manga_id", null: false
+    t.integer "rank"
+    t.text "reason"
+    t.decimal "score", precision: 10
+    t.datetime "updated_at", null: false
+    t.index ["manga_id"], name: "index_best_mangas_on_manga_id"
+  end
+
   create_table "mangas", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "author"
     t.integer "chapet_count"
@@ -20,4 +30,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_24_051405) do
     t.string "title"
     t.datetime "updated_at", null: false
   end
+
+  add_foreign_key "best_mangas", "mangas"
 end
