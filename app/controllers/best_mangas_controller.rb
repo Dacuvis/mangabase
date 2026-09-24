@@ -1,7 +1,7 @@
 class BestMangasController < ApplicationController
   include ApiKeyAuthenticatable
   before_action :set_best_manga, only: %i[ show update destroy ]
-  before_action :authenticate_api_key!, except: [:index, :show]
+  before_action :authenticate_api_key!, except: [ :index, :show ]
 
   # GET /best_mangas
   def index
