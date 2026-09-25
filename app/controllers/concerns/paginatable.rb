@@ -8,12 +8,12 @@ module Paginatable
 
   # Hitung current page dari params, minimal 1
   def current_page
-    [params.fetch(:page, 1).to_i, 1].max
+    [ params.fetch(:page, 1).to_i, 1 ].max
   end
 
   # Hitung per_page dari params, clamp antara 1 dan MAX_PER_PAGE
   def per_page
-    [[params.fetch(:per_page, DEFAULT_PER_PAGE).to_i, 1].max, MAX_PER_PAGE].min
+    [ [ params.fetch(:per_page, DEFAULT_PER_PAGE).to_i, 1 ].max, MAX_PER_PAGE ].min
   end
 
   # Terapkan pagination ke sebuah relation dan render JSON dengan metadata
