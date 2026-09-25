@@ -9,6 +9,22 @@ class BestManga < ApplicationRecord
 
   validate :max_ten_entries, on: :create
 
+  # Scopes
+  # Filter berdasarkan manga
+  scope :by_manga, ->(manga_id) { where(manga_id: manga_id) if manga_id.present? }
+
+  # Filter berdasarkan rank minimum
+  scope :min_rank, ->(val) { where("`rank` >= ?", val.to_i) if val.present? }
+
+  # Filter berdasarkan rank maksimum
+  scope :max_rank, ->(val) { where("`rank` <= ?", val.to_i) if val.present? }
+
+  # Filter berdasarkan score minimum
+  scope :min_score, ->(score) { where("score >= ?", score.to_f) if score.present? }
+
+  # Filter berdasarkan score maksimum
+  scope :max_score, ->(score) { where("score <= ?", score.to_f) if score.present? }
+
   private
 
   def max_ten_entries

@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  resources :users
+  resources :manga_genres
+  resources :reading_lists
+  resources :genres
+  resources :underrated_mangas
   resources :best_mangas
   resources :mangas
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html

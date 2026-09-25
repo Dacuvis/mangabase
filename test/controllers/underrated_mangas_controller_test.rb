@@ -1,21 +1,21 @@
 require "test_helper"
 
-class BestMangasControllerTest < ActionDispatch::IntegrationTest
+class UnderratedMangasControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @best_manga = best_mangas(:one)
+    @underrated_manga = underrated_mangas(:one)
     @headers = {
       "X-API-KEY" => ENV.fetch("API_KEY", "jUSTIN")
     }
   end
 
   test "should get index" do
-    get best_mangas_url
+    get underrated_mangas_url
 
     assert_response :success
   end
 
   test "index should return paginated response with meta" do
-    get best_mangas_url
+    get underrated_mangas_url
 
     json_response = response.parsed_body
     assert json_response.key?("data")
@@ -27,7 +27,7 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index should respect page and per_page params" do
-    get best_mangas_url, params: { page: 1, per_page: 1 }
+    get underrated_mangas_url, params: { page: 1, per_page: 1 }
 
     assert_response :success
     json_response = response.parsed_body
@@ -37,52 +37,42 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "index should filter by manga_id" do
-    get best_mangas_url, params: { manga_id: @best_manga.manga_id }
+    get underrated_mangas_url, params: { manga_id: @underrated_manga.manga_id }
 
     assert_response :success
     json_response = response.parsed_body
-    json_response["data"].each do |bm|
-      assert_equal @best_manga.manga_id, bm["manga_id"]
+    json_response["data"].each do |um|
+      assert_equal @underrated_manga.manga_id, um["manga_id"]
     end
   end
 
-  test "index should filter by min_rank" do
-    get best_mangas_url, params: { min_rank: 1 }
+  test "index should filter by min_score" do
+    get underrated_mangas_url, params: { min_score: 9.0 }
 
     assert_response :success
     json_response = response.parsed_body
-    json_response["data"].each do |bm|
-      assert bm["rank"] >= 1
+    json_response["data"].each do |um|
+      assert um["score"].to_f >= 9.0
     end
   end
 
-  test "index should filter by max_rank" do
-    get best_mangas_url, params: { max_rank: 10 }
-
-    assert_response :success
-    json_response = response.parsed_body
-    json_response["data"].each do |bm|
-      assert bm["rank"] <= 10
-    end
-  end
-
-  test "should create best_manga" do
+  test "should create underrated_manga" do
     manga = Manga.create!(
-      title: "Manga For Best Test",
+      title: "Manga For Underrated Test",
       author: "Test Author",
       synopsis: "Test synopsis",
       chapet_count: 10,
       is_completed: false
     )
 
-    assert_difference("BestManga.count", 1) do
-      post best_mangas_url,
+    assert_difference("UnderratedManga.count") do
+      post underrated_mangas_url,
         params: {
-          best_manga: {
+          underrated_manga: {
             manga_id: manga.id,
             rank: 3,
-            score: 8.5,
-            reason: "Test reason"
+            reason: "A hidden gem",
+            score: 8.5
           }
         },
         headers: @headers
@@ -91,19 +81,16 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
     assert_response :created
   end
 
-  test "should show best_manga" do
-    get best_manga_url(@best_manga)
+  test "should show underrated_manga" do
+    get underrated_manga_url(@underrated_manga)
 
     assert_response :success
   end
 
-  test "should update best_manga" do
-    patch best_manga_url(@best_manga),
+  test "should update underrated_manga" do
+    patch underrated_manga_url(@underrated_manga),
       params: {
-        best_manga: {
-          manga_id: @best_manga.manga_id,
-          rank: @best_manga.rank,
-          score: @best_manga.score,
+        underrated_manga: {
           reason: "Updated reason"
         }
       },
@@ -112,28 +99,29 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should destroy best_manga" do
-    assert_difference("BestManga.count", -1) do
-      delete best_manga_url(@best_manga),
+  test "should destroy underrated_manga" do
+    assert_difference("UnderratedManga.count", -1) do
+      delete underrated_manga_url(@underrated_manga),
         headers: @headers
     end
 
     assert_response :no_content
   end
 
-  test "should return 404 when best_manga not found" do
-    get best_manga_url(id: 999_999)
+  test "should return 404 when underrated_manga not found" do
+    get underrated_manga_url(id: 999_999)
 
     assert_response :not_found
     json_response = response.parsed_body
     assert_equal "NOT_FOUND", json_response.dig("error", "code")
   end
 
-  test "should return 422 when best_manga creation validation fails" do
-    post best_mangas_url,
+  test "should return 422 when underrated_manga creation validation fails" do
+    post underrated_mangas_url,
       params: {
-        best_manga: {
-          rank: 999 # invalid rank (> 10)
+        underrated_manga: {
+          manga_id: nil,
+          reason: ""
         }
       },
       headers: @headers
@@ -143,11 +131,11 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
     assert_equal "VALIDATION_ERROR", json_response.dig("error", "code")
   end
 
-  test "should return 422 when best_manga update validation fails" do
-    patch best_manga_url(@best_manga),
+  test "should return 422 when underrated_manga update validation fails" do
+    patch underrated_manga_url(@underrated_manga),
       params: {
-        best_manga: {
-          rank: 999
+        underrated_manga: {
+          reason: ""
         }
       },
       headers: @headers
@@ -157,13 +145,25 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
     assert_equal "VALIDATION_ERROR", json_response.dig("error", "code")
   end
 
-  test "should return 400 when required best_manga parameter is missing" do
-    post best_mangas_url,
+  test "should return 400 when required underrated_manga parameter is missing" do
+    post underrated_mangas_url,
       params: {},
       headers: @headers
 
     assert_response :bad_request
     json_response = response.parsed_body
     assert_equal "BAD_REQUEST", json_response.dig("error", "code")
+  end
+
+  test "should return 401 when api key is missing on create" do
+    post underrated_mangas_url,
+      params: {
+        underrated_manga: {
+          manga_id: mangas(:one).id,
+          reason: "Test"
+        }
+      }
+
+    assert_response :unauthorized
   end
 end
