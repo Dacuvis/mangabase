@@ -4,7 +4,7 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
   setup do
     @best_manga = best_mangas(:one)
     @headers = {
-      "X-API-KEY" => ENV.fetch("API_KEY")
+      "X-API-KEY" => ENV.fetch("API_KEY", "jUSTIN")
     }
   end
 

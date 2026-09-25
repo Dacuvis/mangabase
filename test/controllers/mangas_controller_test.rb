@@ -4,7 +4,7 @@ class MangasControllerTest < ActionDispatch::IntegrationTest
   setup do
     @manga = mangas(:one)
     @headers = {
-      "X-API-KEY" => ENV.fetch("API_KEY")
+      "X-API-KEY" => ENV.fetch("API_KEY", "jUSTIN")
     }
   end
 

@@ -55,9 +55,10 @@ jobs:
 
     services:
       mysql:
-        image: mysql
+        image: mysql:8.0
         env:
-          MYSQL_ALLOW_EMPTY_PASSWORD: true
+          MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MYSQL_DATABASE: mangabase_test
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -83,7 +84,8 @@ jobs:
       - name: Run tests
         env:
           RAILS_ENV: test
-          DATABASE_URL: mysql2://root@127.0.0.1:3306
+          DATABASE_URL: mysql2://root@127.0.0.1:3306/mangabase_test
+          API_KEY: jUSTIN
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
           # REDIS_URL: redis://localhost:6379/0
         run: bin/rails db:test:prepare test
