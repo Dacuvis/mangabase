@@ -1,17 +1,23 @@
 Rails.application.routes.draw do
-  resources :users
-  resources :manga_genres
-  resources :reading_lists
-  resources :genres
-  resources :underrated_mangas
-  resources :best_mangas
-  resources :mangas
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
+  mount Rswag::Ui::Engine => "/api-docs"
+  mount Rswag::Api::Engine => "/api-docs"
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
+  namespace :api do
+    namespace :v1 do
+      resources :mangas do
+        member do
+          get :recommendations
+        end
+      end
+      resources :genres
+      resources :users
+      resources :manga_genres
+      resources :reading_lists
+      resources :best_mangas
+      resources :underrated_mangas
+    end
+  end
+
+  # Health check
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Defines the root path route ("/")
-  # root "posts#index"
 end

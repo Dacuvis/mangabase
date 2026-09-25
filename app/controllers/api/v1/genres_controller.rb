@@ -1,41 +1,37 @@
-class GenresController < ApplicationController
+class Api::V1::GenresController < ApplicationController
   include ApiKeyAuthenticatable
   include Paginatable
+
   before_action :set_genre, only: %i[ show update destroy ]
   before_action :authenticate_admin!, except: [ :index, :show ]
 
-  # GET /genres
-  # Query params:
-  #   q        - search by name or slug
-  #   page     - page number (default: 1)
-  #   per_page - items per page (default: 10, max: 100)
+  # GET /api/v1/genres
   def index
     @genres = Genre.search(params[:q])
-
     render_paginated(@genres)
   end
 
-  # GET /genres/1
+  # GET /api/v1/genres/1
   def show
-    render json: @genre
+    render json: @genre, serializer: GenreSerializer
   end
 
-  # POST /genres
+  # POST /api/v1/genres
   def create
     @genre = Genre.new(genre_params)
     @genre.save!
 
-    render json: @genre, status: :created, location: @genre
+    render json: @genre, serializer: GenreSerializer, status: :created, location: [ :api, :v1, @genre ]
   end
 
-  # PATCH/PUT /genres/1
+  # PATCH/PUT /api/v1/genres/1
   def update
     @genre.update!(genre_params)
 
-    render json: @genre
+    render json: @genre, serializer: GenreSerializer
   end
 
-  # DELETE /genres/1
+  # DELETE /api/v1/genres/1
   def destroy
     @genre.destroy!
   end

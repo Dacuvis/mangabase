@@ -1,0 +1,630 @@
+openapi: "3.0.1"
+info:
+  title: Mangabase API
+  description: |
+    API untuk manajemen data manga.
+
+    ## Autentikasi
+    Gunakan header `X-API-KEY` untuk mengakses endpoint yang memerlukan autentikasi.
+    - **Admin key** (`API_KEY_ADMIN`): full CRUD semua resource
+    - **User key** (`API_KEY_USER`): CRUD reading list milik sendiri (wajib sertakan `X-USER-ID`)
+    - **Tanpa key**: read-only (GET index & show)
+  version: "1.0.0"
+
+servers:
+  - url: /api/v1
+    description: API v1
+
+components:
+  securitySchemes:
+    AdminApiKey:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+    UserApiKey:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        current_page: { type: integer, example: 1 }
+        per_page:     { type: integer, example: 10 }
+        total_count:  { type: integer, example: 42 }
+        total_pages:  { type: integer, example: 5 }
+
+    Genre:
+      type: object
+      properties:
+        id:   { type: integer, example: 1 }
+        name: { type: string,  example: "Action" }
+        slug: { type: string,  example: "action" }
+
+    Manga:
+      type: object
+      properties:
+        id:                { type: integer, example: 1 }
+        title:             { type: string,  example: "Berserk" }
+        author:            { type: string,  example: "Kentaro Miura" }
+        synopsis:          { type: string,  example: "Dark fantasy manga..." }
+        chapter_count:     { type: integer, example: 364 }
+        is_completed:      { type: boolean, example: false }
+        rating:            { type: number,  example: 9.2, nullable: true, description: "Skala 0-10" }
+        popularity:        { type: integer, example: 150000, nullable: true, description: "Jumlah follower di AniList" }
+        release_year:      { type: integer, example: 1989, nullable: true }
+        country_of_origin: { type: string,  example: "JP", nullable: true, description: "Kode negara 2 huruf (ISO 3166-1)" }
+        cover_image_url:   { type: string,  example: "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/berserk.jpg", nullable: true }
+        created_at:        { type: string, format: date-time }
+        updated_at:        { type: string, format: date-time }
+        genres:
+          type: array
+          items:
+            $ref: "#/components/schemas/Genre"
+
+    User:
+      type: object
+      properties:
+        id:         { type: integer, example: 1 }
+        name:       { type: string,  example: "Ray" }
+        email:      { type: string,  example: "ray@example.com" }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+
+    ReadingList:
+      type: object
+      properties:
+        id:               { type: integer, example: 1 }
+        user_id:          { type: integer, example: 1 }
+        manga_id:         { type: integer, example: 1 }
+        status:
+          type: string
+          enum: [plan_to_read, reading, completed, dropped]
+          example: reading
+        progress_chapter: { type: integer, example: 42, nullable: true }
+        created_at:       { type: string, format: date-time }
+        updated_at:       { type: string, format: date-time }
+
+    BestManga:
+      type: object
+      properties:
+        id:      { type: integer, example: 1 }
+        rank:    { type: integer, example: 1 }
+        score:   { type: number,  example: 9.8 }
+        reason:  { type: string,  example: "Masterpiece of storytelling" }
+        manga_id: { type: integer, example: 1 }
+
+    UnderratedManga:
+      type: object
+      properties:
+        id:      { type: integer, example: 1 }
+        score:   { type: number,  example: 8.5 }
+        reason:  { type: string,  example: "Hidden gem with unique art style" }
+        manga_id: { type: integer, example: 1 }
+
+    Error:
+      type: object
+      properties:
+        error: { type: string, example: "Forbidden: Admin API key required" }
+
+paths:
+  # ---------------------------------------------------------------------------
+  # Mangas
+  # ---------------------------------------------------------------------------
+  /mangas:
+    get:
+      summary: List mangas
+      tags: [Mangas]
+      parameters:
+        - { name: q,            in: query, schema: { type: string },  description: "Cari by title/author (FULLTEXT)" }
+        - { name: is_completed, in: query, schema: { type: boolean }, description: "Filter status selesai" }
+        - { name: genre_id,     in: query, schema: { type: integer }, description: "Filter by genre" }
+        - { name: page,         in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page,     in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Manga" }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Create manga
+      tags: [Mangas]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: ["manga[title]"]
+              properties:
+                "manga[title]":             { type: string }
+                "manga[author]":            { type: string }
+                "manga[synopsis]":          { type: string }
+                "manga[chapter_count]":     { type: integer }
+                "manga[is_completed]":      { type: boolean }
+                "manga[rating]":            { type: number, description: "Skala 0-10" }
+                "manga[popularity]":        { type: integer }
+                "manga[release_year]":      { type: integer }
+                "manga[country_of_origin]": { type: string, description: "2 huruf, misal JP" }
+                "manga[cover_image_url]":   { type: string }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
+        "403": { description: Forbidden, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "422": { description: Unprocessable Entity }
+
+  /mangas/{id}/recommendations:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get manga recommendations
+      tags: [Mangas]
+      parameters:
+        - { name: top_n, in: query, schema: { type: integer, default: 10 }, description: "Jumlah rekomendasi (max 50)" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  manga_id: { type: integer, example: 1 }
+                  title:    { type: string,  example: "Chainsaw Man" }
+                  top_n:    { type: integer, example: 10 }
+                  recommendations:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:               { type: integer, example: 42 }
+                        title:            { type: string,  example: "Berserk" }
+                        author:           { type: string,  example: "Kentaro Miura" }
+                        genres:           { type: string,  example: "Action|Horror|Fantasy" }
+                        rating:           { type: number,  example: 9.2 }
+                        cover_image_url:  { type: string,  example: "https://s4.anilist.co/..." }
+                        similarity_score: { type: number,  example: 0.87 }
+        "404": { description: Manga tidak ditemukan di model rekomendasi }
+        "503": { description: ML service tidak tersedia }
+
+
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get manga
+      tags: [Mangas]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
+        "404": { description: Not Found }
+    patch:
+      summary: Update manga
+      tags: [Mangas]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                "manga[title]":             { type: string }
+                "manga[author]":            { type: string }
+                "manga[synopsis]":          { type: string }
+                "manga[chapter_count]":     { type: integer }
+                "manga[is_completed]":      { type: boolean }
+                "manga[rating]":            { type: number }
+                "manga[popularity]":        { type: integer }
+                "manga[release_year]":      { type: integer }
+                "manga[country_of_origin]": { type: string }
+                "manga[cover_image_url]":   { type: string }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+    delete:
+      summary: Delete manga
+      tags: [Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }
+
+  # ---------------------------------------------------------------------------
+  # Genres
+  # ---------------------------------------------------------------------------
+  /genres:
+    get:
+      summary: List genres
+      tags: [Genres]
+      parameters:
+        - { name: q,        in: query, schema: { type: string } }
+        - { name: page,     in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/Genre" } }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Create genre
+      tags: [Genres]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [genre]
+              properties:
+                genre:
+                  type: object
+                  required: [name, slug]
+                  properties:
+                    name: { type: string }
+                    slug: { type: string }
+      responses:
+        "201": { description: Created }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+
+  /genres/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get genre
+      tags: [Genres]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Genre" } } } }
+        "404": { description: Not Found }
+    patch:
+      summary: Update genre
+      tags: [Genres]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                genre:
+                  type: object
+                  properties:
+                    name: { type: string }
+                    slug: { type: string }
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+    delete:
+      summary: Delete genre
+      tags: [Genres]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }
+
+  # ---------------------------------------------------------------------------
+  # Users
+  # ---------------------------------------------------------------------------
+  /users:
+    get:
+      summary: List users
+      tags: [Users]
+      parameters:
+        - { name: q,        in: query, schema: { type: string } }
+        - { name: page,     in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/User" } }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Create user
+      tags: [Users]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user]
+              properties:
+                user:
+                  type: object
+                  required: [name, email]
+                  properties:
+                    name:  { type: string }
+                    email: { type: string }
+      responses:
+        "201": { description: Created }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+
+  /users/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get user
+      tags: [Users]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+        "404": { description: Not Found }
+    patch:
+      summary: Update user
+      tags: [Users]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    name:  { type: string }
+                    email: { type: string }
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+    delete:
+      summary: Delete user
+      tags: [Users]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }
+
+  # ---------------------------------------------------------------------------
+  # Reading Lists
+  # ---------------------------------------------------------------------------
+  /reading_lists:
+    get:
+      summary: List reading lists
+      tags: [Reading Lists]
+      parameters:
+        - { name: user_id,  in: query, schema: { type: integer } }
+        - { name: manga_id, in: query, schema: { type: integer } }
+        - { name: status,   in: query, schema: { type: string, enum: [plan_to_read, reading, completed, dropped] } }
+        - { name: page,     in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page, in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/ReadingList" } }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Create reading list entry
+      tags: [Reading Lists]
+      security: [{ UserApiKey: [] }]
+      parameters:
+        - { name: X-USER-ID, in: header, schema: { type: integer }, description: "Wajib untuk role user" }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reading_list]
+              properties:
+                reading_list:
+                  type: object
+                  required: [manga_id, status]
+                  properties:
+                    user_id:          { type: integer, description: "Hanya berlaku untuk admin; diabaikan untuk role user" }
+                    manga_id:         { type: integer }
+                    status:           { type: string, enum: [plan_to_read, reading, completed, dropped] }
+                    progress_chapter: { type: integer }
+      responses:
+        "201": { description: Created }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+
+  /reading_lists/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get reading list entry
+      tags: [Reading Lists]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/ReadingList" } } } }
+        "404": { description: Not Found }
+    patch:
+      summary: Update reading list entry
+      tags: [Reading Lists]
+      security: [{ UserApiKey: [] }]
+      parameters:
+        - { name: X-USER-ID, in: header, schema: { type: integer }, description: "Wajib untuk role user" }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reading_list:
+                  type: object
+                  properties:
+                    status:           { type: string, enum: [plan_to_read, reading, completed, dropped] }
+                    progress_chapter: { type: integer }
+      responses:
+        "200": { description: OK }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden — bukan pemilik }
+    delete:
+      summary: Delete reading list entry
+      tags: [Reading Lists]
+      security: [{ UserApiKey: [] }]
+      parameters:
+        - { name: X-USER-ID, in: header, schema: { type: integer }, description: "Wajib untuk role user" }
+      responses:
+        "204": { description: No Content }
+        "401": { description: Unauthorized }
+        "403": { description: Forbidden — bukan pemilik }
+
+  # ---------------------------------------------------------------------------
+  # Best Mangas
+  # ---------------------------------------------------------------------------
+  /best_mangas:
+    get:
+      summary: List best mangas
+      tags: [Best Mangas]
+      parameters:
+        - { name: manga_id,  in: query, schema: { type: integer } }
+        - { name: min_rank,  in: query, schema: { type: integer } }
+        - { name: max_rank,  in: query, schema: { type: integer } }
+        - { name: min_score, in: query, schema: { type: number } }
+        - { name: max_score, in: query, schema: { type: number } }
+        - { name: page,      in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page,  in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/BestManga" } }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Add to best mangas
+      tags: [Best Mangas]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [best_manga]
+              properties:
+                best_manga:
+                  type: object
+                  required: [rank, manga_id]
+                  properties:
+                    rank:     { type: integer }
+                    score:    { type: number }
+                    reason:   { type: string }
+                    manga_id: { type: integer }
+      responses:
+        "201": { description: Created }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+
+  /best_mangas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get best manga entry
+      tags: [Best Mangas]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BestManga" } } } }
+    patch:
+      summary: Update best manga entry
+      tags: [Best Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+    delete:
+      summary: Delete best manga entry
+      tags: [Best Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }
+
+  # ---------------------------------------------------------------------------
+  # Underrated Mangas
+  # ---------------------------------------------------------------------------
+  /underrated_mangas:
+    get:
+      summary: List underrated mangas
+      tags: [Underrated Mangas]
+      parameters:
+        - { name: manga_id,  in: query, schema: { type: integer } }
+        - { name: min_score, in: query, schema: { type: number } }
+        - { name: max_score, in: query, schema: { type: number } }
+        - { name: page,      in: query, schema: { type: integer, default: 1 } }
+        - { name: per_page,  in: query, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data: { type: array, items: { $ref: "#/components/schemas/UnderratedManga" } }
+                  meta: { $ref: "#/components/schemas/Pagination" }
+    post:
+      summary: Add to underrated mangas
+      tags: [Underrated Mangas]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [underrated_manga]
+              properties:
+                underrated_manga:
+                  type: object
+                  required: [manga_id, reason]
+                  properties:
+                    score:    { type: number }
+                    reason:   { type: string }
+                    manga_id: { type: integer }
+      responses:
+        "201": { description: Created }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+
+  /underrated_mangas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get underrated manga entry
+      tags: [Underrated Mangas]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/UnderratedManga" } } } }
+    patch:
+      summary: Update underrated manga entry
+      tags: [Underrated Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "200": { description: OK }
+        "403": { description: Forbidden }
+    delete:
+      summary: Delete underrated manga entry
+      tags: [Underrated Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }

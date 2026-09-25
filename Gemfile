@@ -36,6 +36,24 @@ gem "image_processing", "~> 1.2"
 # Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin Ajax possible
 # gem "rack-cors"
 
+# Serializers
+gem "active_model_serializers", "~> 0.10.14"
+
+# Rate limiting
+gem "rack-attack", "~> 6.7"
+
+# Error tracking
+gem "sentry-ruby", "~> 5.22"
+gem "sentry-rails", "~> 5.22"
+
+# API documentation
+gem "rswag-api", "~> 2.16"
+gem "rswag-ui", "~> 2.16"
+
+group :development, :test do
+  gem "rswag-specs", "~> 2.16"
+end
+
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

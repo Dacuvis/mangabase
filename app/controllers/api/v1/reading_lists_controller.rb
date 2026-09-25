@@ -1,4 +1,4 @@
-class ReadingListsController < ApplicationController
+class Api::V1::ReadingListsController < ApplicationController
   include ApiKeyAuthenticatable
   include Paginatable
 
@@ -6,13 +6,7 @@ class ReadingListsController < ApplicationController
   before_action :authenticate_any_key!, only: %i[ create update destroy ]
   before_action :authorize_owner!, only: %i[ update destroy ]
 
-  # GET /reading_lists
-  # Query params:
-  #   user_id  - filter by user
-  #   manga_id - filter by manga
-  #   status   - filter by status (reading, completed, plan_to_read)
-  #   page     - page number (default: 1)
-  #   per_page - items per page (default: 10, max: 100)
+  # GET /api/v1/reading_lists
   def index
     @reading_lists = ReadingList
                        .by_user(params[:user_id])
@@ -22,14 +16,12 @@ class ReadingListsController < ApplicationController
     render_paginated(@reading_lists)
   end
 
-  # GET /reading_lists/1
+  # GET /api/v1/reading_lists/1
   def show
-    render json: @reading_list
+    render json: @reading_list, serializer: ReadingListSerializer
   end
 
-  # POST /reading_lists
-  # - Admin: user_id diambil dari body request
-  # - User : user_id di-lock dari header X-USER-ID, tidak bisa dispoof lewat body
+  # POST /api/v1/reading_lists
   def create
     uid = resolve_owner_id
     return if performed?
@@ -37,18 +29,18 @@ class ReadingListsController < ApplicationController
     @reading_list = ReadingList.new(reading_list_params.merge(user_id: uid))
     @reading_list.save!
 
-    render json: @reading_list, status: :created, location: @reading_list
+    render json: @reading_list, serializer: ReadingListSerializer,
+           status: :created, location: [ :api, :v1, @reading_list ]
   end
 
-  # PATCH/PUT /reading_lists/1
+  # PATCH/PUT /api/v1/reading_lists/1
   def update
-    # user_id tidak boleh diubah lewat update
     @reading_list.update!(reading_list_params.except(:user_id))
 
-    render json: @reading_list
+    render json: @reading_list, serializer: ReadingListSerializer
   end
 
-  # DELETE /reading_lists/1
+  # DELETE /api/v1/reading_lists/1
   def destroy
     @reading_list.destroy!
   end
@@ -59,7 +51,6 @@ class ReadingListsController < ApplicationController
     @reading_list = ReadingList.find(params.expect(:id))
   end
 
-  # Admin boleh set user_id dari body; user biasa di-lock ke X-USER-ID.
   def resolve_owner_id
     if current_api_role == :admin
       uid = reading_list_params[:user_id]
@@ -73,8 +64,6 @@ class ReadingListsController < ApplicationController
     end
   end
 
-  # Pastikan user biasa hanya bisa ubah/hapus reading list miliknya sendiri.
-  # Admin bisa mengakses milik siapapun.
   def authorize_owner!
     return if current_api_role == :admin
 

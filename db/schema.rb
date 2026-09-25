@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_25_041147) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_25_173357) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -46,14 +46,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_041147) do
     t.text "reason"
     t.decimal "score", precision: 10
     t.datetime "updated_at", null: false
-    t.index ["manga_id"], name: "index_best_mangas_on_manga_id"
+    t.index ["manga_id"], name: "index_best_mangas_on_manga_id", unique: true
+    t.index ["rank"], name: "index_best_mangas_on_rank", unique: true
   end
 
   create_table "genres", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "name"
-    t.string "slug"
+    t.string "name", null: false
+    t.string "slug", null: false
     t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_genres_on_name", unique: true
+    t.index ["slug"], name: "index_genres_on_slug", unique: true
   end
 
   create_table "manga_genres", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
@@ -62,24 +65,31 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_041147) do
     t.bigint "manga_id", null: false
     t.datetime "updated_at", null: false
     t.index ["genre_id"], name: "index_manga_genres_on_genre_id"
+    t.index ["manga_id", "genre_id"], name: "index_manga_genres_on_manga_id_and_genre_id", unique: true
     t.index ["manga_id"], name: "index_manga_genres_on_manga_id"
   end
 
   create_table "mangas", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.string "author"
-    t.integer "chapet_count"
+    t.integer "chapter_count"
+    t.string "country_of_origin", limit: 2
+    t.string "cover_image_url", limit: 500
     t.datetime "created_at", null: false
-    t.boolean "is_completed"
+    t.boolean "is_completed", default: false, null: false
+    t.integer "popularity"
+    t.decimal "rating", precision: 4, scale: 2
+    t.integer "release_year"
     t.text "synopsis"
-    t.string "title"
+    t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.index ["title", "author"], name: "mangas_fulltext_title_author", type: :fulltext
   end
 
   create_table "reading_lists", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.bigint "manga_id", null: false
     t.integer "progress_chapter"
-    t.string "status"
+    t.integer "status", default: 0, null: false, comment: "0=plan_to_read 1=reading 2=completed 3=dropped"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.index ["manga_id"], name: "index_reading_lists_on_manga_id"
@@ -93,14 +103,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_25_041147) do
     t.text "reason"
     t.decimal "score", precision: 10
     t.datetime "updated_at", null: false
-    t.index ["manga_id"], name: "index_underrated_mangas_on_manga_id"
+    t.index ["manga_id"], name: "index_underrated_mangas_on_manga_id", unique: true
   end
 
   create_table "users", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.datetime "created_at", null: false
-    t.string "email"
-    t.string "name"
+    t.string "email", null: false
+    t.string "name", null: false
     t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

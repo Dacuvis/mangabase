@@ -47,6 +47,11 @@ GEM
       erubi (~> 1.11)
       rails-dom-testing (~> 2.2)
       rails-html-sanitizer (~> 1.6)
+    active_model_serializers (0.10.16)
+      actionpack (>= 4.1)
+      activemodel (>= 4.1)
+      case_transform (>= 0.2)
+      jsonapi-renderer (>= 0.1.1.beta1, < 0.3)
     activejob (8.1.3.1)
       activesupport (= 8.1.3.1)
       globalid (>= 0.3.6)
@@ -75,6 +80,8 @@ GEM
       securerandom (>= 0.3)
       tzinfo (~> 2.0, >= 2.0.5)
       uri (>= 0.13.1)
+    addressable (2.9.0)
+      public_suffix (>= 2.0.2, < 8.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt_pbkdf (1.1.2)
@@ -89,6 +96,8 @@ GEM
     bundler-audit (0.9.3)
       bundler (>= 1.2.0)
       thor (~> 1.0)
+    case_transform (0.2)
+      activesupport
     concurrent-ruby (1.3.8)
     connection_pool (3.0.2)
     crass (1.0.7)
@@ -131,6 +140,10 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.21.2)
+    json-schema (6.2.0)
+      addressable (~> 2.8)
+      bigdecimal (>= 3.1, < 5)
+    jsonapi-renderer (0.2.2)
     kamal (2.12.0)
       activesupport (>= 7.0)
       base64 (~> 0.2)
@@ -204,11 +217,14 @@ GEM
       prettyprint
     prettyprint (0.2.0)
     prism (1.9.0)
+    public_suffix (7.0.5)
     puma (8.0.2)
       nio4r (~> 2.0)
     raabro (1.5.0)
     racc (1.8.1)
     rack (3.2.7)
+    rack-attack (6.8.0)
+      rack (>= 1.0, < 4)
     rack-session (2.1.2)
       base64 (>= 0.1.0)
       rack (>= 3.0.0)
@@ -260,6 +276,20 @@ GEM
     regexp_parser (2.13.0)
     reline (0.7.0)
       io-console (~> 0.5)
+    rspec-core (3.13.6)
+      rspec-support (~> 3.13.0)
+    rspec-support (3.13.7)
+    rswag-api (2.17.0)
+      activesupport (>= 5.2, < 8.2)
+      railties (>= 5.2, < 8.2)
+    rswag-specs (2.17.0)
+      activesupport (>= 5.2, < 8.2)
+      json-schema (>= 2.2, < 7.0)
+      railties (>= 5.2, < 8.2)
+      rspec-core (>= 2.14)
+    rswag-ui (2.17.0)
+      actionpack (>= 5.2, < 8.2)
+      railties (>= 5.2, < 8.2)
     rubocop (1.91.0)
       json (>= 2.3)
       language_server-protocol (~> 3.17.0.2)
@@ -293,6 +323,12 @@ GEM
       ffi (~> 1.12)
       logger
     securerandom (0.4.1)
+    sentry-rails (5.28.1)
+      railties (>= 5.0)
+      sentry-ruby (~> 5.28.1)
+    sentry-ruby (5.28.1)
+      bigdecimal
+      concurrent-ruby (~> 1.0, >= 1.0.2)
     solid_cable (4.0.2)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -349,6 +385,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  active_model_serializers (~> 0.10.14)
   bootsnap
   brakeman
   bundler-audit
@@ -359,8 +396,14 @@ DEPENDENCIES
   kamal
   mysql2 (~> 0.5)
   puma (>= 5.0)
+  rack-attack (~> 6.7)
   rails (~> 8.1.3, >= 8.1.3.1)
+  rswag-api (~> 2.16)
+  rswag-specs (~> 2.16)
+  rswag-ui (~> 2.16)
   rubocop-rails-omakase
+  sentry-rails (~> 5.22)
+  sentry-ruby (~> 5.22)
   solid_cable
   solid_cache
   solid_queue

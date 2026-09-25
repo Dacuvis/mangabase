@@ -2,7 +2,7 @@ class MangasController < ApplicationController
   include ApiKeyAuthenticatable
   include Paginatable
   before_action :set_manga, only: %i[ show update destroy ]
-  before_action :authenticate_api_key!, except: [ :index, :show ]
+  before_action :authenticate_admin!, except: [ :index, :show ]
 
   # GET /mangas
   # Query params:

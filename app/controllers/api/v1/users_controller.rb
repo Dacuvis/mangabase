@@ -1,41 +1,37 @@
-class UsersController < ApplicationController
+class Api::V1::UsersController < ApplicationController
   include ApiKeyAuthenticatable
   include Paginatable
+
   before_action :set_user, only: %i[ show update destroy ]
   before_action :authenticate_admin!, except: [ :index, :show ]
 
-  # GET /users
-  # Query params:
-  #   q        - search by name or email
-  #   page     - page number (default: 1)
-  #   per_page - items per page (default: 10, max: 100)
+  # GET /api/v1/users
   def index
     @users = User.search(params[:q])
-
     render_paginated(@users)
   end
 
-  # GET /users/1
+  # GET /api/v1/users/1
   def show
-    render json: @user
+    render json: @user, serializer: UserSerializer
   end
 
-  # POST /users
+  # POST /api/v1/users
   def create
     @user = User.new(user_params)
     @user.save!
 
-    render json: @user, status: :created, location: @user
+    render json: @user, serializer: UserSerializer, status: :created, location: [ :api, :v1, @user ]
   end
 
-  # PATCH/PUT /users/1
+  # PATCH/PUT /api/v1/users/1
   def update
     @user.update!(user_params)
 
-    render json: @user
+    render json: @user, serializer: UserSerializer
   end
 
-  # DELETE /users/1
+  # DELETE /api/v1/users/1
   def destroy
     @user.destroy!
   end

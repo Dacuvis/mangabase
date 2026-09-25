@@ -1,44 +1,42 @@
-class MangaGenresController < ApplicationController
+class Api::V1::MangaGenresController < ApplicationController
   include ApiKeyAuthenticatable
   include Paginatable
+
   before_action :set_manga_genre, only: %i[ show update destroy ]
   before_action :authenticate_admin!, except: [ :index, :show ]
 
-  # GET /manga_genres
-  # Query params:
-  #   manga_id - filter by manga
-  #   genre_id - filter by genre
-  #   page     - page number (default: 1)
-  #   per_page - items per page (default: 10, max: 100)
+  # GET /api/v1/manga_genres
   def index
     @manga_genres = MangaGenre
+                      .includes(:manga, :genre)
                       .by_manga(params[:manga_id])
                       .by_genre(params[:genre_id])
 
     render_paginated(@manga_genres)
   end
 
-  # GET /manga_genres/1
+  # GET /api/v1/manga_genres/1
   def show
-    render json: @manga_genre
+    render json: @manga_genre, serializer: MangaGenreSerializer
   end
 
-  # POST /manga_genres
+  # POST /api/v1/manga_genres
   def create
     @manga_genre = MangaGenre.new(manga_genre_params)
     @manga_genre.save!
 
-    render json: @manga_genre, status: :created, location: @manga_genre
+    render json: @manga_genre, serializer: MangaGenreSerializer,
+           status: :created, location: [ :api, :v1, @manga_genre ]
   end
 
-  # PATCH/PUT /manga_genres/1
+  # PATCH/PUT /api/v1/manga_genres/1
   def update
     @manga_genre.update!(manga_genre_params)
 
-    render json: @manga_genre
+    render json: @manga_genre, serializer: MangaGenreSerializer
   end
 
-  # DELETE /manga_genres/1
+  # DELETE /api/v1/manga_genres/1
   def destroy
     @manga_genre.destroy!
   end
@@ -46,7 +44,7 @@ class MangaGenresController < ApplicationController
   private
 
   def set_manga_genre
-    @manga_genre = MangaGenre.find(params.expect(:id))
+    @manga_genre = MangaGenre.includes(:manga, :genre).find(params.expect(:id))
   end
 
   def manga_genre_params
