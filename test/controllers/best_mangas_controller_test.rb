@@ -71,7 +71,7 @@ class BestMangasControllerTest < ActionDispatch::IntegrationTest
       title: "Manga For Best Test",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 10,
+      chapter_count: 10,
       is_completed: false
     )
 

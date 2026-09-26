@@ -53,6 +53,6 @@ class MangasController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def manga_params
-      params.expect(manga: [ :title, :author, :synopsis, :chapet_count, :is_completed ])
+      params.expect(manga: [ :title, :author, :synopsis, :chapter_count, :is_completed ])
     end
 end

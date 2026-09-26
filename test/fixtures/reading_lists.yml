@@ -3,11 +3,11 @@
 one:
   user: one
   manga: one
-  status: MyString
+  status: 0
   progress_chapter: 1
 
 two:
   user: two
   manga: two
-  status: MyString
+  status: 0
   progress_chapter: 1

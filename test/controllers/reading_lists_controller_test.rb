@@ -72,7 +72,7 @@ class ReadingListsControllerTest < ActionDispatch::IntegrationTest
       title: "Manga For Reading List",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 10,
+      chapter_count: 10,
       is_completed: false
     )
 
@@ -119,7 +119,7 @@ class ReadingListsControllerTest < ActionDispatch::IntegrationTest
       title: "Manga To Delete",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 5,
+      chapter_count: 5,
       is_completed: false
     )
     reading_list = ReadingList.create!(

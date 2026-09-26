@@ -61,7 +61,7 @@ class UnderratedMangasControllerTest < ActionDispatch::IntegrationTest
       title: "Manga For Underrated Test",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 10,
+      chapter_count: 10,
       is_completed: false
     )
 

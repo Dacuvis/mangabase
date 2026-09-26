@@ -144,22 +144,70 @@ paths:
           application/json:
             schema:
               type: object
-              required: ["manga[title]"]
+              required: [manga]
               properties:
-                "manga[title]":             { type: string }
-                "manga[author]":            { type: string }
-                "manga[synopsis]":          { type: string }
-                "manga[chapter_count]":     { type: integer }
-                "manga[is_completed]":      { type: boolean }
-                "manga[rating]":            { type: number, description: "Skala 0-10" }
-                "manga[popularity]":        { type: integer }
-                "manga[release_year]":      { type: integer }
-                "manga[country_of_origin]": { type: string, description: "2 huruf, misal JP" }
-                "manga[cover_image_url]":   { type: string }
+                manga:
+                  type: object
+                  required: [title]
+                  properties:
+                    title:             { type: string, example: "Berserk" }
+                    author:            { type: string, example: "Kentaro Miura" }
+                    synopsis:          { type: string, example: "Dark fantasy manga..." }
+                    chapter_count:     { type: integer, example: 364 }
+                    is_completed:      { type: boolean, example: false }
+                    rating:            { type: number, example: 9.2, description: "Skala 0-10" }
+                    popularity:        { type: integer, example: 150000 }
+                    release_year:      { type: integer, example: 1989 }
+                    country_of_origin: { type: string, example: "JP", description: "2 huruf, misal JP" }
+                    cover_image_url:   { type: string, example: "https://s4.anilist.co/file/anilistcdn/media/manga/cover/large/berserk.jpg" }
       responses:
         "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
         "403": { description: Forbidden, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
         "422": { description: Unprocessable Entity }
+
+  /mangas/{id}:
+    parameters:
+      - { name: id, in: path, required: true, schema: { type: integer } }
+    get:
+      summary: Get manga
+      tags: [Mangas]
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
+        "404": { description: Not Found }
+    patch:
+      summary: Update manga
+      tags: [Mangas]
+      security: [{ AdminApiKey: [] }]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                manga:
+                  type: object
+                  properties:
+                    title:             { type: string }
+                    author:            { type: string }
+                    synopsis:          { type: string }
+                    chapter_count:     { type: integer }
+                    is_completed:      { type: boolean }
+                    rating:            { type: number }
+                    popularity:        { type: integer }
+                    release_year:      { type: integer }
+                    country_of_origin: { type: string }
+                    cover_image_url:   { type: string }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
+        "403": { description: Forbidden }
+        "422": { description: Unprocessable Entity }
+    delete:
+      summary: Delete manga
+      tags: [Mangas]
+      security: [{ AdminApiKey: [] }]
+      responses:
+        "204": { description: No Content }
+        "403": { description: Forbidden }
 
   /mangas/{id}/recommendations:
     parameters:
@@ -194,47 +242,6 @@ paths:
                         similarity_score: { type: number,  example: 0.87 }
         "404": { description: Manga tidak ditemukan di model rekomendasi }
         "503": { description: ML service tidak tersedia }
-
-
-    parameters:
-      - { name: id, in: path, required: true, schema: { type: integer } }
-    get:
-      summary: Get manga
-      tags: [Mangas]
-      responses:
-        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
-        "404": { description: Not Found }
-    patch:
-      summary: Update manga
-      tags: [Mangas]
-      security: [{ AdminApiKey: [] }]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                "manga[title]":             { type: string }
-                "manga[author]":            { type: string }
-                "manga[synopsis]":          { type: string }
-                "manga[chapter_count]":     { type: integer }
-                "manga[is_completed]":      { type: boolean }
-                "manga[rating]":            { type: number }
-                "manga[popularity]":        { type: integer }
-                "manga[release_year]":      { type: integer }
-                "manga[country_of_origin]": { type: string }
-                "manga[cover_image_url]":   { type: string }
-      responses:
-        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/Manga" } } } }
-        "403": { description: Forbidden }
-        "422": { description: Unprocessable Entity }
-    delete:
-      summary: Delete manga
-      tags: [Mangas]
-      security: [{ AdminApiKey: [] }]
-      responses:
-        "204": { description: No Content }
-        "403": { description: Forbidden }
 
   # ---------------------------------------------------------------------------
   # Genres

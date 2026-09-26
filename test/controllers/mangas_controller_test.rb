@@ -73,7 +73,7 @@ class MangasControllerTest < ActionDispatch::IntegrationTest
             title: "Test Manga",
             author: "Test Author",
             synopsis: "Test synopsis",
-            chapet_count: 10,
+            chapter_count: 10,
             is_completed: false
           }
         },
@@ -96,7 +96,7 @@ class MangasControllerTest < ActionDispatch::IntegrationTest
           title: "Updated Manga",
           author: "Updated Author",
           synopsis: "Updated synopsis",
-          chapet_count: 20,
+          chapter_count: 20,
           is_completed: true
         }
       },
@@ -110,7 +110,7 @@ class MangasControllerTest < ActionDispatch::IntegrationTest
       title: "Manga to Delete",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 10,
+      chapter_count: 10,
       is_completed: false
     )
 

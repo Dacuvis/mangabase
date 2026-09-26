@@ -26,14 +26,15 @@ module Paginatable
                 .limit(per_page)
                 .offset((current_page - 1) * per_page)
 
-    render json: records,
-           each_serializer: options.delete(:each_serializer),
-           meta: {
-             current_page: current_page,
-             per_page: per_page,
-             total_count: total_count,
-             total_pages: total_pages
-           },
-           **options
+    render_options = {
+      meta: {
+        current_page: current_page,
+        per_page: per_page,
+        total_count: total_count,
+        total_pages: total_pages
+      }
+    }.merge(options)
+
+    render json: records, **render_options
   end
 end

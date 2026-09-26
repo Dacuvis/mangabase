@@ -4,12 +4,12 @@ one:
   title: MyString
   author: MyString
   synopsis: MyText
-  chapet_count: 1
+  chapter_count: 1
   is_completed: false
 
 two:
-  title: MyString
+  title: MyString2
   author: MyString
   synopsis: MyText
-  chapet_count: 1
+  chapter_count: 1
   is_completed: false

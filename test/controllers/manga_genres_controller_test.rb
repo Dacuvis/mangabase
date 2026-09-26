@@ -61,7 +61,7 @@ class MangaGenresControllerTest < ActionDispatch::IntegrationTest
       title: "New Manga For Genre Test",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 5,
+      chapter_count: 5,
       is_completed: false
     )
     genre = genres(:two)
@@ -91,7 +91,7 @@ class MangaGenresControllerTest < ActionDispatch::IntegrationTest
       title: "Another Manga",
       author: "Test Author",
       synopsis: "Test synopsis",
-      chapet_count: 5,
+      chapter_count: 5,
       is_completed: false
     )
 
